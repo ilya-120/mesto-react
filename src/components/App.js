@@ -98,11 +98,17 @@ function App() {
       .postNewCard(data)
       .then((newCard) => {
         setCards([newCard, ...cards])
-        closeAllPopups();
+        closeAllPopups()
       })
       .catch((err) => {
         console.log(`ошибка: ${err}`)
       })
+  }
+
+  function handleEscClose(evt) {
+    if (evt.key === 'Escape') {
+      closeAllPopups()
+    }
   }
 
   function closeAllPopups() {
@@ -111,6 +117,8 @@ function App() {
     setIsEditProfilePopupOpen(false)
     setSelectedCard(null)
   }
+
+  document.addEventListener('keydown', handleEscClose)
 
   return (
     <CurrentUserContext.Provider value={currentUser}>
