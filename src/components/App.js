@@ -4,6 +4,7 @@ import Footer from './Footer';
 import Main from './Main';
 import PopupWithForm from './PopupWithForm.js';
 import EditProfilePopup from './EditProfilePopup.js';
+import EditAvatarPopup from './EditAvatarPopup.js';
 import ImagePopup from './ImagePopup.js';
 import { api } from '../utils/Api.js';
 import { CurrentUserContext } from '../contexts/CurrentUserContext.js';
@@ -51,6 +52,18 @@ function App() {
       })
       .catch((err) => {
         console.log(`неудачно: ${err}`);
+      })
+  }
+
+  function handleUpdateAvatar(data) {
+    api
+      .setAvatar(data)
+      .then((userInfoRes) => {
+        setCurrentUser(userInfoRes);
+        closeAllPopups();
+      })
+      .catch((err) => {
+        console.log(`ошибка: ${err}`);
       })
   }
 
@@ -107,24 +120,11 @@ function App() {
           class="popup__error input-link-error">
         </span>
       </PopupWithForm>
-      <PopupWithForm
-        name="avatar"
-        title="Обновить аватар"
-        buttonTitle="Сохранить"
+      <EditAvatarPopup
         isOpen={isEditAvatarPopupOpen}
-        onClose={closeAllPopups}>
-        <input
-          class="popup__input popup__input_type_link"
-          id="input-avatarLink"
-          required
-          type="url"
-          name="avatar"
-          placeholder="Ссылка на аватар">
-        </input>
-        <span
-          class="popup__error input-avatarLink-error">
-        </span>
-      </PopupWithForm>
+        onClose={closeAllPopups}
+        onUpdateAvatar={handleUpdateAvatar}
+      />
       <ImagePopup
         card={selectedCard}
         onClose={closeAllPopups}
