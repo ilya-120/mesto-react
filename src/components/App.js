@@ -2,9 +2,9 @@ import React from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import Main from './Main';
-import PopupWithForm from './PopupWithForm.js';
 import EditProfilePopup from './EditProfilePopup.js';
 import EditAvatarPopup from './EditAvatarPopup.js';
+import AddPlacePopup from './AddPlacePopup.js';
 import ImagePopup from './ImagePopup.js';
 import { api } from '../utils/Api.js';
 import { CurrentUserContext } from '../contexts/CurrentUserContext.js';
@@ -15,16 +15,42 @@ function App() {
   const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = React.useState(false);
   const [selectedCard, setSelectedCard] = React.useState(null);
   const [currentUser, setCurrentUser] = React.useState({});
+  const [cards, setCards] = React.useState([]);
+
+  function handleCardLike(card) {
+    // Снова проверяем, есть ли уже лайк на этой карточке
+    const isLiked = card.likes.some(i => i._id === currentUser._id)
+
+    // Отправляем запрос в API и получаем обновлённые данные карточки
+    api
+      .updateCardLike(card._id, !isLiked)
+      .then((newCard) => {
+        setCards((state) => state.map((c) => c._id === card._id ? newCard : c))
+      })
+      .catch((err) => {
+        console.log(`Ошибка загрузки данных: ${err}`)
+      })
+  }
+
+  function handleCardDelete(card) {
+    api
+      .deleteCard(card._id)
+      .then(setCards(cards.filter(c => c._id !== card._id)))
+      .catch((err) => {
+        console.log(`Ошибка загрузки данных: ${err}`)
+      })
+  }
 
   React.useEffect(() => {
     api
-      .getUserInfo()
-      .then((userInfoRes) => {
+      .getAppInfo()
+      .then(([userInfoRes, cardListRes]) => {
         setCurrentUser(userInfoRes)
+        setCards(cardListRes)
       })
       .catch((err) => {
-        console.log(`Ошибка загрузки данных: ${err}`);
-      });
+        console.log(`Ошибка загрузки данных: ${err}`)
+      })
   }, [])
 
   function handleEditAvatarClick() {
@@ -51,7 +77,7 @@ function App() {
         closeAllPopups()
       })
       .catch((err) => {
-        console.log(`неудачно: ${err}`);
+        console.log(`неудачно: ${err}`)
       })
   }
 
@@ -59,11 +85,23 @@ function App() {
     api
       .setAvatar(data)
       .then((userInfoRes) => {
-        setCurrentUser(userInfoRes);
+        setCurrentUser(userInfoRes)
         closeAllPopups();
       })
       .catch((err) => {
-        console.log(`ошибка: ${err}`);
+        console.log(`ошибка: ${err}`)
+      })
+  }
+
+  function handleAddPlaceSubmit(data) {
+    api
+      .postNewCard(data)
+      .then((newCard) => {
+        setCards([newCard, ...cards])
+        closeAllPopups();
+      })
+      .catch((err) => {
+        console.log(`ошибка: ${err}`)
       })
   }
 
@@ -82,6 +120,9 @@ function App() {
         onEditProfile={handleEditProfileClick}
         onAddPlace={handleAddPlaceClick}
         onCardClick={handleCardClick}
+        onCardLike={handleCardLike}
+        onCardDelete={handleCardDelete}
+        cards={cards}
       />
       <Footer />
       <EditProfilePopup
@@ -89,37 +130,11 @@ function App() {
         onClose={closeAllPopups}
         onUpdateUser={handleUpdateUser}
       />
-      <PopupWithForm
-        name="add-card"
-        title="Новое место"
-        buttonTitle="Создать"
+      <AddPlacePopup
         isOpen={isAddPlacePopupOpen}
-        onClose={closeAllPopups}>
-        <input
-          class="popup__input popup__input_type_name"
-          id="input-name"
-          required
-          minlength="2"
-          maxlength="40"
-          type="text"
-          name="name"
-          placeholder="Название">
-        </input>
-        <span
-          class="popup__error input-name-error">
-        </span>
-        <input
-          class="popup__input popup__input_type_link"
-          id="input-link"
-          required
-          type="url"
-          name="link"
-          placeholder="Ссылка на картинку">
-        </input>
-        <span
-          class="popup__error input-link-error">
-        </span>
-      </PopupWithForm>
+        onClose={closeAllPopups}
+        onAddPlace={handleAddPlaceSubmit}
+      />
       <EditAvatarPopup
         isOpen={isEditAvatarPopupOpen}
         onClose={closeAllPopups}
@@ -130,7 +145,7 @@ function App() {
         onClose={closeAllPopups}
       />
     </CurrentUserContext.Provider>
-  );
+  )
 }
 
 export default App;
