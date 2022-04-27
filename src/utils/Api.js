@@ -34,7 +34,7 @@ class Api {
     return fetch(`${this._baseUrl}users/me`, {
       method: 'PATCH',
       headers: this._headers,
-      body: JSON.stringify({ name: data.name, about: data.about })
+      body: JSON.stringify({ name: data.name, about: data.description })
     })
       .then(this._checkResponse);
   }

@@ -3,13 +3,28 @@ import Header from './Header';
 import Footer from './Footer';
 import Main from './Main';
 import PopupWithForm from './PopupWithForm.js';
+import EditProfilePopup from './EditProfilePopup.js';
 import ImagePopup from './ImagePopup.js';
+import { api } from '../utils/Api.js';
+import { CurrentUserContext } from '../contexts/CurrentUserContext.js';
 
 function App() {
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = React.useState(false);
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = React.useState(false);
   const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = React.useState(false);
   const [selectedCard, setSelectedCard] = React.useState(null);
+  const [currentUser, setCurrentUser] = React.useState({});
+
+  React.useEffect(() => {
+    api
+      .getUserInfo()
+      .then((userInfoRes) => {
+        setCurrentUser(userInfoRes)
+      })
+      .catch((err) => {
+        console.log(`Ошибка загрузки данных: ${err}`);
+      });
+  }, [])
 
   function handleEditAvatarClick() {
     setIsEditAvatarPopupOpen(true)
@@ -23,18 +38,31 @@ function App() {
     setIsAddPlacePopupOpen(true)
   }
 
+  function handleCardClick(card) {
+    setSelectedCard(card)
+  }
+
+  function handleUpdateUser(data) {
+    api
+      .setUserInfo(data)
+      .then((user) => {
+        setCurrentUser(user)
+        closeAllPopups()
+      })
+      .catch((err) => {
+        console.log(`неудачно: ${err}`);
+      })
+  }
+
   function closeAllPopups() {
     setIsAddPlacePopupOpen(false)
     setIsEditAvatarPopupOpen(false)
     setIsEditProfilePopupOpen(false)
     setSelectedCard(null)
   }
-  function handleCardClick(card) {
-    setSelectedCard(card)
-  }
 
   return (
-    <>
+    <CurrentUserContext.Provider value={currentUser}>
       <Header />
       <Main
         onEditAvatar={handleEditAvatarClick}
@@ -43,38 +71,11 @@ function App() {
         onCardClick={handleCardClick}
       />
       <Footer />
-      <PopupWithForm
-        name="edit-card"
-        title="Редактировать профиль"
-        buttonTitle="Сохранить"
+      <EditProfilePopup
         isOpen={isEditProfilePopupOpen}
-        onClose={closeAllPopups}>
-        <input
-          className="popup__input popup__input_type_title"
-          id="input-names"
-          type="text"
-          name="name"
-          required
-          minlength="2"
-          maxlength="40"
-          placeholder="Имя">
-        </input>
-        <span
-          class="popup__error input-names-error">
-        </span>
-        <input
-          class="popup__input popup__input_type_subtitle"
-          id="input-about"
-          type="text"
-          name="about"
-          required
-          minlength="2"
-          maxlength="200"
-          placeholder="О себе">
-        </input>
-        <span
-          class="popup__error input-about-error"></span>
-      </PopupWithForm>
+        onClose={closeAllPopups}
+        onUpdateUser={handleUpdateUser}
+      />
       <PopupWithForm
         name="add-card"
         title="Новое место"
@@ -128,7 +129,7 @@ function App() {
         card={selectedCard}
         onClose={closeAllPopups}
       />
-    </>
+    </CurrentUserContext.Provider>
   );
 }
 
