@@ -8,8 +8,6 @@ function PopupWithConfirm({ isOpen, onClose, card, onSubmit }) {
     onSubmit(card)
   }
 
-
-
   return (
     <PopupWithForm
       name="confirm"
