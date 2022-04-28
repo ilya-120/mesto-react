@@ -2,7 +2,7 @@ import React from 'react';
 import Card from './Card';
 import { CurrentUserContext } from '../contexts/CurrentUserContext.js';
 
-function Main({ onEditAvatar, onEditProfile, onAddPlace, onCardClick, onCardLike, onCardDelete, cards }) {
+function Main({ onEditAvatar, onEditProfile, onAddPlace, onCardClick, onCardLike, onCardDeleteClick, cards }) {
     const currentUser = React.useContext(CurrentUserContext);
 
     return (
@@ -37,7 +37,7 @@ function Main({ onEditAvatar, onEditProfile, onAddPlace, onCardClick, onCardLike
                         card={card}
                         onCardClick={onCardClick}
                         onCardLike={onCardLike}
-                        onCardDelete={onCardDelete}
+                        onCardDeleteClick={onCardDeleteClick}
                     />
                 )
                 )}

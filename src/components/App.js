@@ -5,6 +5,7 @@ import Main from './Main';
 import EditProfilePopup from './EditProfilePopup.js';
 import EditAvatarPopup from './EditAvatarPopup.js';
 import AddPlacePopup from './AddPlacePopup.js';
+import PopupWithConfirm from './PopupWithConfirm.js';
 import ImagePopup from './ImagePopup.js';
 import { api } from '../utils/Api.js';
 import { CurrentUserContext } from '../contexts/CurrentUserContext.js';
@@ -13,9 +14,11 @@ function App() {
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = React.useState(false);
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = React.useState(false);
   const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = React.useState(false);
+  const [isConfirmPopupOpen, setIsConfirmPopupOpen] = React.useState(false);
   const [selectedCard, setSelectedCard] = React.useState(null);
   const [currentUser, setCurrentUser] = React.useState({});
   const [cards, setCards] = React.useState([]);
+  const [removedCardId, setRemovedCardId] = React.useState('');
 
   function handleCardLike(card) {
     // Снова проверяем, есть ли уже лайк на этой карточке
@@ -32,11 +35,17 @@ function App() {
       })
   }
 
+  function handleCardDeleteClick(card) {
+    setIsConfirmPopupOpen(!isConfirmPopupOpen);
+    setRemovedCardId(card);
+  }
+
   function handleCardDelete(card) {
     api
       .deleteCard(card._id)
       .then(() => {
         setCards((cards) => cards.filter(c => c._id !== card._id))
+        closeAllPopups()
       })
       .catch((err) => {
         console.log(`Ошибка загрузки данных: ${err}`)
@@ -117,6 +126,7 @@ function App() {
     setIsAddPlacePopupOpen(false)
     setIsEditAvatarPopupOpen(false)
     setIsEditProfilePopupOpen(false)
+    setIsConfirmPopupOpen(false)
     setSelectedCard(null)
   }
 
@@ -131,7 +141,7 @@ function App() {
         onAddPlace={handleAddPlaceClick}
         onCardClick={handleCardClick}
         onCardLike={handleCardLike}
-        onCardDelete={handleCardDelete}
+        onCardDeleteClick={handleCardDeleteClick}
         cards={cards}
       />
       <Footer />
@@ -149,6 +159,12 @@ function App() {
         isOpen={isEditAvatarPopupOpen}
         onClose={closeAllPopups}
         onUpdateAvatar={handleUpdateAvatar}
+      />
+      <PopupWithConfirm
+        isOpen={isConfirmPopupOpen}
+        onClose={closeAllPopups}
+        onSubmit={handleCardDelete}
+        card={removedCardId}
       />
       <ImagePopup
         card={selectedCard}
